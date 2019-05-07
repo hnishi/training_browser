@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Speech Test</title>
+</head>
+<body>
+<input type="button" id="enUS" value="Hello">
+<input type="button" id="jaJP" value="こんにちは">
+</body>
+<script type="text/javascript">
+document.getElementById("enUS").addEventListener("click", function(e) {
+    if (typeof SpeechSynthesisUtterance == "undefined") {return}
+    var u = new SpeechSynthesisUtterance();
+    u.text = "hello";
+    u.lang = 'en-US';
+    u.rate = 1.0;
+    window.speechSynthesis.speak(u);
+});
+document.getElementById("jaJP").addEventListener("click", function(e) {
+    if (typeof SpeechSynthesisUtterance == "undefined") {return}
+    var u = new SpeechSynthesisUtterance();
+    u.text = "こんにちは";
+    u.lang = 'ja-JP';
+    u.rate = 1.0;
+    window.speechSynthesis.speak(u);
+})
+  
+</script>
+</html>

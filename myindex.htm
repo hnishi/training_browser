@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Browser Training</title>
+	<style>
+		#fruits {
+			/*単なるスタイリング*/
+			width:500px; height:100px; margin:20px; background-color:#FF9966; border:1px solid #cc3333;
+		}
+		#dropbox {
+			/*単なるスタイリング*/
+			width:500px; height:100px; margin:20px; background-color:#CCFF66; border:1px solid #00cc00;
+			/*以下はwebkit系ブラウザでドラッグ＆ドロップを動かすための指定（ブラウザのサポートが進めば、必要なくなると思われます）*/
+			-khtml-user-drag: element;
+		}
+	</style>
+	<script>
+		/***** ドラッグ開始時の処理 *****/
+		function f_dragstart(event){
+			//ドラッグするデータのid名をDataTransferオブジェクトにセット
+			event.dataTransfer.setData("text", event.target.id);
+		}
+		
+		/***** ドラッグ要素がドロップ要素に重なっている間の処理 *****/
+		function f_dragover(event){
+			//dragoverイベントをキャンセルして、ドロップ先の要素がドロップを受け付けるようにする
+			event.preventDefault();
+		}
+		
+		/***** ドロップ時の処理 *****/
+		function f_drop(event){
+			//ドラッグされたデータのid名をDataTransferオブジェクトから取得
+			var id_name = event.dataTransfer.getData("text");
+			//id名からドラッグされた要素を取得
+			var drag_elm =document.getElementById(id_name);
+			//ドロップ先にドラッグされた要素を追加
+			event.currentTarget.appendChild(drag_elm);
+			//エラー回避のため、ドロップ処理の最後にdropイベントをキャンセルしておく
+			event.preventDefault();
+		}
+	</script>
+</head>
+
+<body>
+    <div class="page">
+        <header>
+            <div id="title">
+                <h1>ファイル読み取り アプリケーション</h1>
+            </div>
+        </header>
+        <section id="main">
+		<h3>画像ファイルかテキストファイルを選択すると、そのファイルの中身が表示されます。</h3>
+		<p>ドラッグアンドドロップで1つから複数のファイルの内容を取得します。</p>
+		<div id="drop" style="width:700px; height:150px; padding:10px; border:3px solid"
+                  ondragover="onDragOver(event)">
+                  ここにドロップしたファイルの内容を表示します。</div>
+        <br />
+        <div id="disp" ></div>
+        <script type="text/javascript">
+            if (window.File) {
+                // File APIに関する処理を記述
+                //window.alert("File APIが実装されてます。");
+                document.getElementById("drop").addEventListener("drop", onDrop, false);
+            } else {
+                window.alert("本ブラウザではFile APIが使えません");
+            }
+
+	        // Drop領域にドロップした際のファイルのプロパティ情報読み取り処理
+	        function onDrop(event){
+		        var files = event.dataTransfer.files;
+		        var disp = document.getElementById("disp");
+		        disp.innerHTML ="";
+
+		        // ファイルの配列から1つずつファイルを選択
+		        for(var i=0; i< files.length; i++){
+			        var f = files[i];
+			        // ①FileReaderオブジェクトの生成
+			        var reader = new FileReader();
+
+			        // ②画像ファイルかテキストファイルかを判定
+			        if (!f.type.match('image.*') && !f.type.match('text.*')) {
+				        alert("画像ファイルとテキストファイル以外は表示できません。");
+				        continue;
+			        }
+
+			        // ③エラー発生時の処理
+			        reader.onerror = function (evt) {
+				        disp.innerHTML = "読み取り時にエラーが発生しました。";
+			        }
+
+			        // ④画像ファイルの場合の処理
+			        if (f.type.match('image.*')) {
+				        // ファイル読取が完了した際に呼ばれる処理
+				        reader.onload = function (evt) {
+					        var li = document.createElement('li');
+					        var img = document.createElement('img');
+					        img.src = evt.target.result;
+					        li.appendChild(img);
+					        li.innerHTML += "<br />";
+					        disp.appendChild(li);
+				        }
+				        // readAsDataURLメソッドでファイルの内容を取得
+				        reader.readAsDataURL(f);
+			        }
+
+			        // ⑤テキストファイルの場合の処理
+			        if (f.type.match('text.*')) {
+				        // ファイル読取が完了した際に呼ばれる処理
+				        reader.onload = function (evt) {
+					        // FileReaderが取得したテキストをそのままdivタグに出力
+					        disp.innerHTML = reader.result;
+				        }
+				        // readAsTextメソッドでファイルの内容を取得
+				        reader.readAsText(f, 'shift-jis');
+			        }
+	        }
+	        // ⑥ブラウザ上でファイルを展開する挙動を抑止
+	        event.preventDefault();
+	        }
+
+	        function onDragOver(event){ 
+		        // ⑥ブラウザ上でファイルを展開する挙動を抑止
+		        event.preventDefault(); 
+	        }
+        </script>
+        </section>
+        <footer>
+        </footer>
+	</div>
+	
+	<p>好きな果物は何ですか？</p>
+	<div id="fruits" ondragover="f_dragover(event)" ondrop="f_drop(event)">
+		<img src="images/apple.gif" id="apple" alt="りんご" draggable="true" ondragstart="f_dragstart(event)">
+		<img src="images/orange.gif" id="orange" alt="みかん" draggable="true" ondragstart="f_dragstart(event)">
+		<img src="images/grape.gif" id="grape" alt="ぶどう" draggable="true" ondragstart="f_dragstart(event)">
+	</div>
+
+	<p>下のボックスに入れてください。</p>
+	<div id="dropbox" ondragover="f_dragover(event)" ondrop="f_drop(event)">
+	</div>
+
+	<div>
+	<script>
+		// 発言を作成
+		const uttr = new SpeechSynthesisUtterance("Hello World!")
+		// 発言を再生 (発言キューに発言を追加)
+		speechSynthesis.speak(uttr)
+	</script>
+	</div>
+
+<p>サンプル</p>
+<script type="text/javascript">
+    alert("Hello”);
+
+	// Check for browser support
+	if (!"speechSynthesis" in window) {
+	  $("#msg").html(
+		"Sorry. Your browser <strong>does not support</strong> speech synthesis."
+	  );
+	} else {
+	  $("#msg").html("👍Your browser supports speech synthesis.");
+	}
+	
+	// Fetch the list of voices and populate the voice options.
+	function loadVoices() {
+	  // Fetch the available voices in English US.
+	  let voices = speechSynthesis.getVoices();
+	  $("#voice-names").empty();
+	  voices.forEach(function(voice, i) {
+		const $option = $("<option>");
+		$option.val(voice.name);
+		$option.text(voice.name + " (" + voice.lang + ")");
+		$option.prop("selected", voice.name === "Google US English");
+		$("#voice-names").append($option);
+	  });
+	}
+	
+	// Execute loadVoices.
+	loadVoices();
+	
+	// Chrome loads voices asynchronously.
+	window.speechSynthesis.onvoiceschanged = function(e) {
+	  loadVoices();
+	};
+	
+	const uttr = new SpeechSynthesisUtterance();
+	
+	// Set up an event listener for when the 'speak' button is clicked.
+	// Create a new utterance for the specified text and add it to the queue.
+	$("#speak-btn").click(function() {
+	  uttr.text = $("#text").val();
+	  uttr.rate = parseFloat($("#rate").val());
+	  // If a voice has been selected, find the voice and set the
+	  // utterance instance's voice attribute.
+	  if ($("#voice-names").val()) {
+		uttr.voice = speechSynthesis
+		  .getVoices()
+		  .filter(voice => voice.name == $("#voice-names").val())[0];
+	  }
+	  speechSynthesis.speak(uttr);
+	  uttr.onend = function() {
+		// hoge
+	  };
+	});
+	$("#pause-btn").click(function() {
+	  speechSynthesis.pause();
+	});
+	$("#resume-btn").click(function() {
+	  speechSynthesis.resume();
+	});
+	$("#cancel-btn").click(function() {
+	  speechSynthesis.cancel();
+	});
+</script>
+
+</body>
+</html>
+
